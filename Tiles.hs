@@ -14,7 +14,7 @@ module Tiles where
 
     generateEmptyTiles :: [Tile]
     generateEmptyTiles = (take 16 (repeat (Tile Corner 0 North)))
-                         ++ (take 18 (repeat (Tile Tshaped 0 North)))
+                         ++ (take 6 (repeat (Tile Tshaped 0 North)))
                          ++ (take 12 (repeat (Tile Line 0 North)))
 
 
