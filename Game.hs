@@ -2,9 +2,30 @@ module Game where
     import qualified Tiles
     import qualified Players
     
-    data Board = Board [[Tiles.Tile]] deriving (Show)
+    data Board = Board [[Tiles.Tile]]
 
-    data Game = Game [Players.Player] Board Tiles.Tile deriving (Show)
+    data Game = Game [Players.Player] Board Tiles.Tile
+
+    -- Show Instance
+
+    instance Show Board where
+        show (Board board) = showBoard board 0 0
+
+
+    showBoard :: [[Tiles.Tile]] -> Int -> Int -> String
+    showBoard board x y
+            | x == 7 = showBoard board 0 (y+1)
+            | (x,y) == (6,6) = show (board !! x !! y)
+            | otherwise = show (board !! x !! y) ++ " " ++ showBoard board (x+1) y
+
+    instance Show Game where
+        show (Game players board xtile) = Players.showPlayers players ++ " " ++ Tiles.showXTile xtile ++ " " ++ show board
+
+
+    -- Save game
+
+    saveGame :: Game -> FilePath -> IO ()
+    saveGame game path = writeFile path $ show game
 
 
 

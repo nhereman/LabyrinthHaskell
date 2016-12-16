@@ -1,7 +1,7 @@
 module Players where
     
-    data Color = Yellow | Red | Blue | Green deriving (Enum,Eq,Show)
-    data Control = Human | AI deriving (Show)
+    data Color = Yellow | Red | Blue | Green deriving (Enum,Eq)
+    data Control = Human | AI deriving (Eq)
     type Position = (Int, Int)
     type Card = Int
 
@@ -10,8 +10,40 @@ module Players where
                   control :: Control,
                   pos :: Position,
                   cards :: [Card]
-                  } deriving (Show)
+                  } deriving (Eq)
 
+    -- Instance Show
+    instance Show Color where
+        show color
+            | color == Yellow = "yellow"
+            | color == Red = "red"
+            | color == Blue = "blue"
+            | otherwise = "green" 
+
+    instance Show Control where
+        show ctrl
+            | ctrl == Human = "human"
+            | otherwise = "ai"
+
+    instance Show Player where
+          show (Player color ctrl pos cards) = show color ++ " " ++ show ctrl ++ " " ++ showPos pos ++ " " ++ showCards cards
+
+    showPos :: Position -> String
+    showPos (x,y) = show x ++ " " ++ show y
+
+    showCards :: [Card] -> String
+    showCards [] = ""
+    showCards (c:cs)
+        | cs == [] = show c
+        | otherwise = show c ++ " " ++ showCards cs
+
+    showPlayers :: [Player] -> String
+    showPlayers [] = ""
+    showPlayers (p:ps)
+        | ps == [] = show p
+        | otherwise = show p ++ " " ++ showPlayers ps
+
+    -- Players generation
 
     generatePlayers :: Int -> Int -> [Player]
     generatePlayers nbPlayer nbHuman = generatePlayers' nbPlayer nbHuman Yellow

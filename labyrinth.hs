@@ -3,4 +3,4 @@ import qualified Players
 import qualified Game
 
 main :: IO ()
-main = putStr $ show $ Game.generateGame 1 1 Tiles.generateEmptyTiles
+main = Game.saveGame (Game.generateGame 1 1 Tiles.generateEmptyTiles) "test.laby"
