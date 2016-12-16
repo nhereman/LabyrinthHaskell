@@ -4,7 +4,9 @@ module Game where
     
     data Board = Board [[Tiles.Tile]]
 
-    data Game = Game [Players.Player] Board Tiles.Tile
+    data Game = Game {players :: [Players.Player]
+                      , board :: Board
+                      , xtile :: Tiles.Tile}
 
     -- Show Instance
 
@@ -107,7 +109,7 @@ module Game where
 
 
 
-    -- Gameplay
+    -- Maze shift
     insertBottom :: Game -> Int -> Game
     insertBottom (Game players (Board board) tile) col = Game newPlayers newBoard newTile
                 where
@@ -184,3 +186,65 @@ module Game where
                 where
                     next = moveRowLeft board tile row (col+1)
                     rightTile = getBoardTile board (col+1) row
+
+    -- Pawn movement
+
+    reachablePosPlayer :: Board -> Players.Player -> [Players.Position]
+    reachablePosPlayer board (Players.Player _ _ pos _) = reachablePos board [pos]
+
+
+
+    reachablePos :: Board -> [Players.Position] -> [Players.Position]
+    reachablePos board posList
+                | visitNext == posList = posList
+                | otherwise = reachablePos board visitNext
+                where
+                    visitNext = cleanDouble (posList ++ left ++ right ++ top ++ bot)
+                    left = leftReachable board posList
+                    right = rightReachable board posList
+                    top = topReachable board posList
+                    bot = botReachable board posList
+                    
+
+    
+    cleanDouble :: [Players.Position] -> [Players.Position]
+    cleanDouble [] = []
+    cleanDouble (p:ps)
+                | p `elem` ps = cleanDouble ps
+                | otherwise = p:cleanDouble ps
+                
+    leftReachable :: Board -> [Players.Position] -> [Players.Position]
+    leftReachable _ [] = []
+    leftReachable board ((x,y):ps)
+        | x == 0 = next
+        | Tiles.isConnectedByLeft (getBoardTile board x y) (getBoardTile board (x-1) y) = (x-1,y):next
+        | otherwise = next
+        where
+            next = leftReachable board ps
+
+    rightReachable :: Board -> [Players.Position] -> [Players.Position]
+    rightReachable _ [] = []
+    rightReachable board ((x,y):ps)
+        | x == 6 = next
+        | Tiles.isConnectedByRight (getBoardTile board x y) (getBoardTile board (x+1) y) = (x+1,y):next
+        | otherwise = next
+        where
+            next = rightReachable board ps
+
+    topReachable :: Board -> [Players.Position] -> [Players.Position]
+    topReachable _ [] = []
+    topReachable board ((x,y):ps)
+        | y == 0 = next
+        | Tiles.isConnectedByTop (getBoardTile board x y) (getBoardTile board x (y-1)) = (x,y-1):next
+        | otherwise = next
+        where
+            next = topReachable board ps
+
+    botReachable :: Board -> [Players.Position] -> [Players.Position]
+    botReachable _ [] = []
+    botReachable board ((x,y):ps)
+        | y == 6 = next
+        | Tiles.isConnectedByBot (getBoardTile board x y) (getBoardTile board x (y+1)) = (x,y+1):next
+        | otherwise = next
+        where
+            next = botReachable board ps
