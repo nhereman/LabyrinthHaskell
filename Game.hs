@@ -106,11 +106,8 @@ module Game where
     generateGame nbPlayer nbAI (t:ts) = Game (Players.generatePlayers nbPlayer nbAI) (generateBoard ts) t
 
 
-    --------------
-    -- Gameplay --
-    --------------
 
-    -- Shift maze
+    -- Gameplay
     insertBottom :: Game -> Int -> Game
     insertBottom (Game players (Board board) tile) col = Game newPlayers newBoard newTile
                 where
@@ -187,17 +184,3 @@ module Game where
                 where
                     next = moveRowLeft board tile row (col+1)
                     rightTile = getBoardTile board (col+1) row
-
-
-    -- Gather treasure
-
-    gatherTreasure :: Board -> Players.Player -> Players.Player
-    gatherTreasure (Board board) (Players.Player color ctrl (x,y) cards) = Players.Player color ctrl (x,y) (newCards cards treas)
-                where
-                    treas = Tiles.treasure (board !! x !! y)
-
-    newCards :: [Players.Card] -> Int -> [Players.Card]
-    newCards [] _ = []
-    newCards (c:cs) treasure
-            | c == treasure = cs
-            | otherwise = c:newCards cs treasure
