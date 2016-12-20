@@ -287,6 +287,10 @@ module Game where
     isPlayerAt ((Players.Player col _ pos _):ps) pos2 col2 = (col == col2 && pos == pos2) || isPlayerAt ps pos2 col2
 
 
+    -- Turn management
+
+    nextTurn :: Game -> Game
+    nextTurn (Game (p:ps) board xtile) =Game (ps++[p]) board xtile
 
 
 
