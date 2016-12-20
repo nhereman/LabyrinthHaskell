@@ -58,10 +58,10 @@ module Game where
                         | isBotSide p = generateFixedTiles' (replaceTile board p botSideTile) ps
                         | otherwise = generateFixedTiles' (replaceTile board p (getCenterTile p)) ps
                         where
-                            isLeftSide (x,y) = y == 0
-                            isRightSide (x,y) = y == 6
-                            isTopSide (x,y) = x == 0
-                            isBotSide (x,y) = x == 6
+                            isLeftSide (x,y) = x == 0
+                            isRightSide (x,y) = x == 6
+                            isTopSide (x,y) = y == 0
+                            isBotSide (x,y) = y == 6
                             leftSideTile = Tiles.Tile Tiles.Tshaped 0 Tiles.West
                             rightSideTile = Tiles.Tile Tiles.Tshaped 0 Tiles.East
                             topSideTile = Tiles.Tile Tiles.Tshaped 0 Tiles.North
@@ -70,8 +70,8 @@ module Game where
     getStartTile :: Players.Position -> Tiles.Tile
     getStartTile pos
                 | pos == (0,0) = Tiles.Tile Tiles.Corner 0 Tiles.East
-                | pos == (0,6) = Tiles.Tile Tiles.Corner 0 Tiles.South
-                | pos == (6,0) = Tiles.Tile Tiles.Corner 0 Tiles.North
+                | pos == (0,6) = Tiles.Tile Tiles.Corner 0 Tiles.North
+                | pos == (6,0) = Tiles.Tile Tiles.Corner 0 Tiles.South
                 | otherwise = Tiles.Tile Tiles.Corner 0 Tiles.West
 
     getCenterTile :: Players.Position -> Tiles.Tile
@@ -248,3 +248,46 @@ module Game where
         | otherwise = next
         where
             next = botReachable board ps
+
+
+    -- Draw board
+
+    drawBoard :: Game -> String
+    drawBoard (Game players board _) = before ++ drawBoard' board players
+            where
+                before = "---0-------1-------2-------3-------4-------5-------6----\n"
+
+    drawBoard' :: Board -> [Players.Player] -> String
+    drawBoard' board players = drawBoard'' board 0 players
+
+    drawBoard'' :: Board -> Int -> [Players.Player] -> String
+    drawBoard'' board row players
+            | row == 7 = "\n"
+            | otherwise = drawRow board row 0 0 players ++ drawBoard'' board (row+1) players
+
+    drawRow :: Board -> Int -> Int -> Int -> [Players.Player] -> String
+    drawRow board row col tLine players
+            | tLine == 5 = "--------------------------------------------------------\n"
+            | col == 7 = "\n"++drawRow board row 0 (tLine+1) players
+            | endRow && isRBStart = (Tiles.asciiTile (getBoardTile board col row) getRBStart pos) !! tLine ++ show row ++ drawRow board row (col+1) tLine players
+            | endRow = (Tiles.asciiTile (getBoardTile board col row) "" pos) !! tLine ++ show row ++ drawRow board row (col+1) tLine players
+            | isYGStart = (Tiles.asciiTile (getBoardTile board col row) getYGStart pos) !! tLine ++ "|" ++ drawRow board row (col+1) tLine players
+            | otherwise = (Tiles.asciiTile (getBoardTile board col row) "" pos) !! tLine ++ "|" ++ drawRow board row (col+1) tLine players
+                where
+                    endRow = tLine == 2 && col == 6
+                    isRBStart = col == 6 && ( (row == 0) || (row == 6) )
+                    getRBStart = if (row == 0) then "R" else "B"
+                    isYGStart = col == 0 && ( (row == 0) || (row == 6))
+                    getYGStart = if (row == 0)  then "Y" else "G"
+                    pos = (isPlayerAt players (col,row) Players.Yellow, isPlayerAt players (col,row) Players.Red,
+                          isPlayerAt players (col,row) Players.Green, isPlayerAt players (col,row) Players.Blue)
+
+    isPlayerAt :: [Players.Player] -> Players.Position -> Players.Color -> Bool
+    isPlayerAt [] _ _ = False
+    isPlayerAt ((Players.Player col _ pos _):ps) pos2 col2 = (col == col2 && pos == pos2) || isPlayerAt ps pos2 col2
+
+
+
+
+
+
