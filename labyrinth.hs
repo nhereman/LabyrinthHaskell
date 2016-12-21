@@ -4,7 +4,7 @@ import qualified Game
 import qualified System.Process
 
 main :: IO ()
-main = turn $ Game.generateGame 4 4 [1..24] $ Tiles.putTreasureOnTiles Tiles.generateEmptyTiles [1..24]
+main = turn $ Game.generateGame 1 1 [1..24] $ Tiles.putTreasureOnTiles Tiles.generateEmptyTiles [1..24]
 
 
 stateOfTheGame :: Game.Game -> IO ()
@@ -47,7 +47,8 @@ play game = do
                 System.Process.callCommand "clear"
                 stateOfTheGame game
                 shifted <- mazeShiftingChoice game
-                turn $ Game.nextTurn shifted
+                let collected = Game.gatherTreasures shifted
+                turn $ Game.nextTurn collected
 
 
 save :: Game.Game -> IO ()
