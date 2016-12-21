@@ -209,6 +209,11 @@ module Game where
                         visitRight = if isRightReachable then reachablePos board (x+1,y) visitTop else visitTop
                         visitBot = if isBotReachable then reachablePos board (x,y+1) visitRight else visitRight
 
+    movePlayerTo :: Game -> Players.Position -> Game
+    movePlayerTo (Game ((Players.Player col ctrl _ cards):ps) board xtile) pos = Game (newPlayer:ps) board xtile
+                    where
+                        newPlayer = Players.Player col ctrl pos cards
+
     -- Draw board
 
     drawBoard :: Game -> String
@@ -272,6 +277,19 @@ module Game where
 
     treasureIsNeeded :: Board -> Players.Player -> Players.Position -> Bool
     treasureIsNeeded board (Players.Player _ _ _ cards) (x,y) = Tiles.treasure (getBoardTile board x y) `elem` cards
+
+
+    -- Win condition
+
+    playerHasWin :: Game -> Bool
+    playerHasWin (Game ((Players.Player col _ pos cards):ps) _ _) = length cards == 0 && pos == Players.colorPosition col
+
+
+
+
+
+
+
 
 
 
