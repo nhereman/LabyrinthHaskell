@@ -2,9 +2,21 @@ import qualified Tiles
 import qualified Players
 import qualified Game
 import qualified System.Process
+import qualified Utils
+import System.Random
 
 main :: IO ()
-main = turn $ Game.generateGame 1 1 [1..24] $ Tiles.putTreasureOnTiles Tiles.generateEmptyTiles [1..24]
+main = createGame
+
+
+createGame :: IO ()
+createGame = do
+                gen <- getStdGen
+                let (treasures,gen2) = Utils.permutation gen [1..24]
+                let (tiles,gen3) = Utils.permutation gen2 Tiles.generateEmptyTiles
+                let (treasTile,gen4) = Utils.permutation gen3 $ Tiles.putTreasureOnTiles tiles treasures
+                let (cards,gen5) = Utils.permutation gen4 [1..24]
+                turn $ Game.generateGame 1 1 cards treasTile
 
 
 stateOfTheGame :: Game.Game -> IO ()
