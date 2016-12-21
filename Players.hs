@@ -63,3 +63,12 @@ module Players where
         | color == Red = (6,0)
         | color == Blue = (6,6)
         | otherwise = (0,6)
+
+
+    distributeCards :: [Player] -> [Card] -> [Player]
+    distributeCards ((Player col ctrl pos _):[]) cards = [Player col ctrl pos cards]
+    distributeCards ((Player col ctrl pos _):ps) cards = (Player col ctrl pos takeCards):distributeCards ps leaveCards
+                    where
+                        takeCards = take nbCards cards
+                        leaveCards = drop nbCards cards
+                        nbCards = (length cards) `div` (1+length ps)

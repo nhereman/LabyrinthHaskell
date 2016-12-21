@@ -37,9 +37,13 @@ module Tiles where
     -- Tiles generation
 
     generateEmptyTiles :: [Tile]
-    generateEmptyTiles = (take 16 (repeat (Tile Corner 21 North)))
-                         ++ (take 6 (repeat (Tile Tshaped 22 North)))
-                         ++ (take 12 (repeat (Tile Line 23 North)))
+    generateEmptyTiles = (take 16 (repeat (Tile Corner 0 North)))
+                         ++ (take 6 (repeat (Tile Tshaped 0 North)))
+                         ++ (take 12 (repeat (Tile Line 0 North)))
+
+    putTreasureOnTiles :: [Tile] -> [Treasure] -> [Tile]
+    putTreasureOnTiles tiles [] = tiles
+    putTreasureOnTiles ((Tile k _ d):ts) (tr:trs) = (Tile k tr d):putTreasureOnTiles ts trs
 
 
     -- Tile connection

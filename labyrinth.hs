@@ -4,7 +4,7 @@ import qualified Game
 import qualified System.Process
 
 main :: IO ()
-main = turn $ Game.generateGame 4 4 Tiles.generateEmptyTiles
+main = turn $ Game.generateGame 4 4 [1..24] $ Tiles.putTreasureOnTiles Tiles.generateEmptyTiles [1..24]
 
 
 stateOfTheGame :: Game.Game -> IO ()

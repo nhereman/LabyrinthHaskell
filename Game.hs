@@ -104,8 +104,8 @@ module Game where
 
     -- Game generation
 
-    generateGame :: Int -> Int -> [Tiles.Tile] -> Game
-    generateGame nbPlayer nbAI (t:ts) = Game (Players.generatePlayers nbPlayer nbAI) (generateBoard ts) t
+    generateGame :: Int -> Int -> [Players.Card] -> [Tiles.Tile] -> Game
+    generateGame nbPlayer nbAI cards (t:ts) = Game (Players.distributeCards (Players.generatePlayers nbPlayer nbAI) cards) (generateBoard ts) t
 
 
 
