@@ -14,6 +14,7 @@ stateOfTheGame (Game.Game players board xtile) = do
                                                     putStr $ unlines $ Tiles.asciiTile xtile "" (False,False,False,False)
                                                     whichPlayer players
                                                     playerCards players
+                                                    otherPlayerCards $ tail players
 
 whichPlayer :: [Players.Player] -> IO ()
 whichPlayer ((Players.Player col _ _ _):_) = putStr $ "Player : " ++ show col ++ "\n"
@@ -24,6 +25,11 @@ playerCards ((Players.Player _ _ _ cards):_) = do
                                                 let str = if cards /= [] then c else "You have all your treasures, go to you starting tile in order to win"
                                                 putStr $ "Your cards : "++str++"\n"
 
+otherPlayerCards :: [Players.Player] -> IO ()
+otherPlayerCards [] = putStr "\n"
+otherPlayerCards ((Players.Player col _ _ cards):ps) = do
+                                                            putStr $ show col ++ ":" ++ show (length cards) ++ " "
+                                                            otherPlayerCards ps
 
 
 
@@ -48,6 +54,7 @@ save game = do
                 Game.saveGame game filepath
 
 
+-- Choice save or play
 askSaveOrPlay :: IO String
 askSaveOrPlay = do
                     putStr "\n0. Continue to play\n1. Save the game and quit\nWhat do you want to do 0 or 1?\n"
