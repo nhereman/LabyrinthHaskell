@@ -44,7 +44,10 @@ turn game = do
 
 play :: Game.Game -> IO ()
 play game = do
-                turn $ Game.nextTurn game
+                System.Process.callCommand "clear"
+                stateOfTheGame game
+                shifted <- mazeShiftingChoice game
+                turn $ Game.nextTurn shifted
 
 
 save :: Game.Game -> IO ()
@@ -69,6 +72,69 @@ isChoiceSPGood :: String -> Bool
 isChoiceSPGood choice = choice == "0" || choice == "1"
 
 
+
+-- Maze Shifting
+
+mazeShiftingChoice :: Game.Game -> IO Game.Game
+mazeShiftingChoice game = do
+                            side <- insertSideChoice
+                            System.Process.callCommand "clear"
+                            stateOfTheGame game
+                            rowOrCol <- if side == "0" || side == "1" then rowOrColChoice True else rowOrColChoice False
+                            let rcInt = read rowOrCol :: Int
+                            System.Process.callCommand "clear"
+                            stateOfTheGame game
+                            showXtileChoice game
+                            pos <- positionChoice
+                            return $ choiceToAction game side pos rcInt
+
+insertSideChoice :: IO String
+insertSideChoice = do
+                        putStr "From which side do you want to insert the tile ?\n"
+                        putStr "0.Top\t1.Bottom\t2.Left\t3.Right\n"
+                        choice <- getLine
+                        choice2 <- if choice `elem` ["0","1","2","3"] then stringToIO choice else insertSideChoice
+                        return choice2
+
+rowOrColChoice :: Bool -> IO String
+rowOrColChoice isCol = do
+                        putStr $"In which "++rowOrCol++" do you want to insert the tile ? \n"
+                        putStr "1, 3 or 5 ?\n"
+                        choice <- getLine
+                        choice2 <- if choice `elem` ["1", "3", "5"] then stringToIO choice else rowOrColChoice isCol
+                        return choice2
+                        where
+                            rowOrCol = if isCol then "column" else "row"
+
+showXtileChoice :: Game.Game -> IO ()
+showXtileChoice (Game.Game _ _ (Tiles.Tile kind treasures _)) = do
+                                                                    putStr $ "0.\n" ++ unlines (tile Tiles.North) ++ "\n"
+                                                                    putStr $ "1.\n" ++ unlines (tile Tiles.East) ++ "\n"
+                                                                    putStr $ "2.\n" ++ unlines (tile Tiles.South) ++ "\n"
+                                                                    putStr $ "3.\n" ++ unlines (tile Tiles.West) ++ "\n"
+                                                                where
+                                                                    tile d = Tiles.asciiTile (Tiles.Tile kind treasures d) "" (False,False,False,False)
+
+positionChoice :: IO String
+positionChoice = do
+                    putStr "Which position for the tile (0,1,2 or 3) ?\n"
+                    choice <- getLine
+                    choice2 <- if choice `elem` ["0","1","2","3"] then stringToIO choice else positionChoice
+                    return choice2
+
+choiceToAction :: Game.Game -> String -> String -> Int -> Game.Game
+choiceToAction (Game.Game players board (Tiles.Tile k t _)) side pos rowcol
+                | side == "0" = Game.insertTop newGame rowcol
+                | side == "1" = Game.insertBottom newGame rowcol
+                | side == "2" = Game.insertLeft newGame rowcol
+                | otherwise = Game.insertRight newGame rowcol
+                where
+                    newGame = (Game.Game players board newTile)
+                    newTile
+                            | pos == "0" = Tiles.Tile k t Tiles.North
+                            | pos == "1" = Tiles.Tile k t Tiles.East
+                            | pos == "2" = Tiles.Tile k t Tiles.South
+                            | otherwise = Tiles.Tile k t Tiles.West
 
 
 
