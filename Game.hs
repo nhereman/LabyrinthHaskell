@@ -190,65 +190,24 @@ module Game where
     -- Pawn movement
 
     reachablePosPlayer :: Board -> Players.Player -> [Players.Position]
-    reachablePosPlayer board (Players.Player _ _ pos _) = reachablePos board [pos]
+    reachablePosPlayer board (Players.Player _ _ pos _) = reachablePos board pos []
 
 
-
-    reachablePos :: Board -> [Players.Position] -> [Players.Position]
-    reachablePos board posList
-                | visitNext == posList = posList
-                | otherwise = reachablePos board visitNext
-                where
-                    visitNext = cleanDouble (posList ++ left ++ right ++ top ++ bot)
-                    left = leftReachable board posList
-                    right = rightReachable board posList
-                    top = topReachable board posList
-                    bot = botReachable board posList
-                    
-
-    
-    cleanDouble :: [Players.Position] -> [Players.Position]
-    cleanDouble [] = []
-    cleanDouble (p:ps)
-                | p `elem` ps = cleanDouble ps
-                | otherwise = p:cleanDouble ps
-                
-    leftReachable :: Board -> [Players.Position] -> [Players.Position]
-    leftReachable _ [] = []
-    leftReachable board ((x,y):ps)
-        | x == 0 = next
-        | Tiles.isConnectedByLeft (getBoardTile board x y) (getBoardTile board (x-1) y) = (x-1,y):next
-        | otherwise = next
-        where
-            next = leftReachable board ps
-
-    rightReachable :: Board -> [Players.Position] -> [Players.Position]
-    rightReachable _ [] = []
-    rightReachable board ((x,y):ps)
-        | x == 6 = next
-        | Tiles.isConnectedByRight (getBoardTile board x y) (getBoardTile board (x+1) y) = (x+1,y):next
-        | otherwise = next
-        where
-            next = rightReachable board ps
-
-    topReachable :: Board -> [Players.Position] -> [Players.Position]
-    topReachable _ [] = []
-    topReachable board ((x,y):ps)
-        | y == 0 = next
-        | Tiles.isConnectedByTop (getBoardTile board x y) (getBoardTile board x (y-1)) = (x,y-1):next
-        | otherwise = next
-        where
-            next = topReachable board ps
-
-    botReachable :: Board -> [Players.Position] -> [Players.Position]
-    botReachable _ [] = []
-    botReachable board ((x,y):ps)
-        | y == 6 = next
-        | Tiles.isConnectedByBot (getBoardTile board x y) (getBoardTile board x (y+1)) = (x,y+1):next
-        | otherwise = next
-        where
-            next = botReachable board ps
-
+    reachablePos :: Board -> Players.Position -> [Players.Position] -> [Players.Position]
+    reachablePos board (x,y) visited = visitBot
+                    where
+                        isLeftReachable = (x>0) && (Tiles.isConnectedByLeft (getBoardTile board x y) (getBoardTile board (x-1) y))
+                                        && not ( (x-1,y) `elem` visited )
+                        isRightReachable = (x<6) && (Tiles.isConnectedByRight (getBoardTile board x y) (getBoardTile board (x+1) y))
+                                         && not ( (x+1,y) `elem` visited)
+                        isTopReachable = (y>0) && (Tiles.isConnectedByTop (getBoardTile board x y) (getBoardTile board x (y-1)))
+                                        && not ( (x,y-1) `elem` visited)
+                        isBotReachable = (y<6) && (Tiles.isConnectedByBot (getBoardTile board x y) (getBoardTile board x (y+1)))
+                                          && not ( (x,y+1) `elem` visited)
+                        visitLeft = if isLeftReachable then reachablePos board (x-1,y) ((x,y):visited) else (x,y):visited
+                        visitTop = if isTopReachable then reachablePos board (x,y-1) visitLeft else visitLeft
+                        visitRight = if isRightReachable then reachablePos board (x+1,y) visitTop else visitTop
+                        visitBot = if isBotReachable then reachablePos board (x,y+1) visitRight else visitRight
 
     -- Draw board
 
