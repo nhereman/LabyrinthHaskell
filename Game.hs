@@ -284,6 +284,11 @@ module Game where
     playerHasWin :: Game -> Bool
     playerHasWin (Game ((Players.Player col _ pos cards):ps) _ _) = length cards == 0 && pos == Players.colorPosition col
 
+    -- AI
+
+    playerIsAI :: Game -> Bool
+    playerIsAI (Game ((Players.Player _ ctrl _ _):_) _ _) = ctrl == Players.AI
+
 
 
 

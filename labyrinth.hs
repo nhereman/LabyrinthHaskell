@@ -3,6 +3,7 @@ import qualified Players
 import qualified Game
 import qualified System.Process
 import qualified Utils
+import qualified AI
 import System.Random
 
 main :: IO ()
@@ -16,7 +17,7 @@ createGame = do
                 let (tiles,gen3) = Utils.permutation gen2 Tiles.generateEmptyTiles
                 let (treasTile,gen4) = Utils.permutation gen3 $ Tiles.putTreasureOnTiles tiles treasures
                 let (cards,gen5) = Utils.permutation gen4 [1..24]
-                turn $ Game.generateGame 1 1 cards treasTile
+                turn $ Game.generateGame 1 0 cards treasTile
 
 
 stateOfTheGame :: Game.Game -> IO ()
@@ -48,14 +49,17 @@ otherPlayerCards ((Players.Player col _ _ cards):ps) = do
 -- Turn
 
 turn :: Game.Game -> IO ()
-turn game = do
+turn game = if Game.playerIsAI game then playAI game else turnHuman game
+
+turnHuman :: Game.Game -> IO ()
+turnHuman game = do
                 System.Process.callCommand "clear"
                 stateOfTheGame game
                 choice <- askSaveOrPlay
-                if choice == "0" then play game else save game
+                if choice == "0" then playHuman game else save game
 
-play :: Game.Game -> IO ()
-play game = do
+playHuman :: Game.Game -> IO ()
+playHuman game = do
                 System.Process.callCommand "clear"
                 stateOfTheGame game
                 shifted <- mazeShiftingChoice game
@@ -64,6 +68,13 @@ play game = do
                 stateOfTheGame collected
                 pos <- moveChoice collected
                 let moved = Game.movePlayerTo collected pos
+                let hasWin = Game.playerHasWin moved
+                endOfTurn moved hasWin
+
+playAI :: Game.Game -> IO ()
+playAI game = do
+                let collected = AI.bestMove game
+                let moved = AI.movePawn collected
                 let hasWin = Game.playerHasWin moved
                 endOfTurn moved hasWin
                 
@@ -190,7 +201,6 @@ rowChoice = do
                 let row = read rowStr :: Int
                 result <- if row >= 0 && row < 7 then toIO row else rowChoice
                 return result
-
 
 
 
