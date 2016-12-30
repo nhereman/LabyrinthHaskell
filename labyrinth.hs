@@ -4,10 +4,16 @@ import qualified Game
 import qualified System.Process
 import qualified Utils
 import qualified AI
+import qualified Loader
 import System.Random
 
 main :: IO ()
-main = createGame
+main = loadGame
+
+loadGame :: IO ()
+loadGame = do
+            game <- Loader.loadGameFromFile "test.txt"
+            turn $ game
 
 
 createGame :: IO ()
@@ -17,7 +23,7 @@ createGame = do
                 let (tiles,gen3) = Utils.permutation gen2 Tiles.generateEmptyTiles
                 let (treasTile,gen4) = Utils.permutation gen3 $ Tiles.putTreasureOnTiles tiles treasures
                 let (cards,gen5) = Utils.permutation gen4 [1..24]
-                turn $ Game.generateGame 1 0 cards treasTile
+                turn $ Game.generateGame 1 1 cards treasTile
 
 
 stateOfTheGame :: Game.Game -> IO ()

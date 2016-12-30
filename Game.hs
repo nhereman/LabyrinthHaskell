@@ -98,8 +98,17 @@ module Game where
                 where
                     nextPos (x,y) = if x == 6 then (0,y+1) else (x+1,y)
 
+    fillBoardIgnoreFixed :: Board -> Players.Position -> [Tiles.Tile] -> Board
+    fillBoardIgnoreFixed board pos [] = board
+    fillBoardIgnoreFixed board pos (t:ts) = fillBoardIgnoreFixed (replaceTile board pos t) (nextPos pos) ts
+                where
+                    nextPos (x,y) = if x == 6 then (0,y+1) else (x+1,y)
+
     generateBoard :: [Tiles.Tile] -> Board
     generateBoard tiles = fillBoard (generateFixedTiles generateEmptyBoard) (0,0) tiles
+
+    loadBoard :: [Tiles.Tile] -> Board
+    loadBoard tiles = fillBoardIgnoreFixed generateEmptyBoard (0,0) tiles
 
 
     -- Game generation
