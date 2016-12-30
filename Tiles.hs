@@ -28,7 +28,9 @@ module Tiles where
             | otherwise = "line"
 
     instance Show Tile where
-        show (Tile kind treasure dir) = show kind ++ " " ++ show treasure ++ " " ++ show dir
+        show (Tile kind treasure dir)
+                | treasure /= 0 = show kind ++ " " ++ show treasure ++ " " ++ show dir
+                | otherwise = show kind ++ " " ++ show dir
 
     showXTile :: Tile -> String
     showXTile  (Tile kind treasure _) = show kind ++ " " ++ show treasure
