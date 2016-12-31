@@ -77,7 +77,7 @@ module Loader where
                  return $ read n
 
     direction :: Parser Tiles.Direction
-    direction = do d <- sat (isDir)
+    direction = do d <- (sat (isDir) `orelse` return "error")
                    strToDir d
                     where
                         isDir x = x `elem` ["north","east","south","west"]
@@ -89,7 +89,7 @@ module Loader where
                                 | otherwise = zero
 
     kind :: Parser Tiles.Kind
-    kind = do k <- sat (isKind)
+    kind = do k <- (sat (isKind) `orelse` return "error")
               strToKind k
                 where
                     isKind x = x `elem` ["corner", "tshape", "line"]
@@ -100,7 +100,7 @@ module Loader where
                             | otherwise = zero
 
     control :: Parser Players.Control
-    control = do c <- sat (isControl)
+    control = do c <- (sat (isControl) `orelse` return "error")
                  strToControl c
                 where
                     isControl x = (x == "human") || (x == "ai")
@@ -110,7 +110,7 @@ module Loader where
                                 | otherwise = zero
 
     color :: Parser Players.Color
-    color = do c <- sat (isColor)
+    color = do c <- (sat (isColor) `orelse` return "error")
                strToColor c
                 where
                     isColor x = x `elem` ["yellow","red","blue","green"]
@@ -133,21 +133,24 @@ module Loader where
 
     tile :: Parser Tiles.Tile
     tile = do k <- kind
-              t <- treasure
+              t <- treasure--(treasure `orelse` return 0)
               d <- direction
               return $ Tiles.Tile k t d
 
 
     tiles :: Parser [Tiles.Tile]
-    tiles = pmany tile
+    tiles = many tile
 
     xtile :: Parser Tiles.Tile
     xtile = do k <- kind
-               t <- treasure
+               t <- (treasure `orelse` return 0)
                return $ Tiles.Tile k t Tiles.North
 
+    card :: Parser Players.Card
+    card = natural
+
     cards :: Parser [Players.Card]
-    cards = pmany natural
+    cards = many card
 
     player :: Parser Players.Player
     player = do col <- color
@@ -157,7 +160,7 @@ module Loader where
                 return $ Players.Player col ctr p car
 
     players :: Parser [Players.Player]
-    players = pmany player
+    players = many player
 
     labyrinth :: Parser Game.Game
     labyrinth = do p <- players
