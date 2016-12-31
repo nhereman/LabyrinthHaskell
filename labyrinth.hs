@@ -12,7 +12,7 @@ main = loadGame
 
 loadGame :: IO ()
 loadGame = do
-            game <- Loader.loadGameFromFile "test2.txt"
+            game <- Loader.loadGameFromFile "test.txt"
             turn $ game
 
 

@@ -133,7 +133,7 @@ module Loader where
 
     tile :: Parser Tiles.Tile
     tile = do k <- kind
-              t <- treasure--(treasure `orelse` return 0)
+              t <- (treasure `orelse` return 0)
               d <- direction
               return $ Tiles.Tile k t d
 
