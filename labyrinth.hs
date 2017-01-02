@@ -6,24 +6,33 @@ import qualified Utils
 import qualified AI
 import qualified Loader
 import System.Random
+import qualified System.Environment
 
 main :: IO ()
-main = createGame
+main = do args <- System.Environment.getArgs
+          if length args == 0 then createGame else loadGame $ head args
 
-loadGame :: IO ()
-loadGame = do
-            game <- Loader.loadGameFromFile "test2.txt"
+loadGame :: String -> IO ()
+loadGame path = do
+            game <- Loader.loadGameFromFile path
             turn $ game
-
 
 createGame :: IO ()
 createGame = do
-                gen <- getStdGen
-                let (treasures,gen2) = Utils.permutation gen [1..24]
-                let (tiles,gen3) = Utils.permutation gen2 Tiles.generateEmptyTiles
-                let (treasTile,gen4) = Utils.permutation gen3 $ Tiles.putTreasureOnTiles tiles treasures
-                let (cards,gen5) = Utils.permutation gen4 [1..24]
-                turn $ Game.generateGame 1 0 cards treasTile
+                p <- nbPlayers
+                ai <- nbAI p
+                createGame' p ai
+
+
+
+createGame' :: Int -> Int -> IO ()
+createGame' p ai = do
+                    gen <- getStdGen
+                    let (treasures,gen2) = Utils.permutation gen [1..24]
+                    let (tiles,gen3) = Utils.permutation gen2 Tiles.generateEmptyTiles
+                    let (treasTile,gen4) = Utils.permutation gen3 $ Tiles.putTreasureOnTiles tiles treasures
+                    let (cards,gen5) = Utils.permutation gen4 [1..24]
+                    turn $ Game.generateGame p (p-ai) cards treasTile
 
 
 stateOfTheGame :: Game.Game -> IO ()
@@ -98,6 +107,22 @@ save game = do
                 filepath <- getLine
                 Game.saveGame game filepath
 
+-- Choice nb Player
+nbPlayers :: IO Int
+nbPlayers = do
+                putStr "How many players (Real + IA) (maximum 4) ? \n"
+                choice <- getLine
+                let c = read choice :: Int
+                choice2 <- if (c `elem` [1..4]) then toIO c else nbPlayers
+                return choice2
+
+nbAI :: Int -> IO Int
+nbAI players = do
+                putStr "How many players are controled by AI ? \n"
+                choice <- getLine
+                let c = read choice :: Int
+                choice2 <- if (c `elem` [0..players]) then toIO c else nbAI players
+                return choice2
 
 -- Choice save or play
 askSaveOrPlay :: IO String
