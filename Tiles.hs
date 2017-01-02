@@ -9,7 +9,7 @@ module Tiles where
                 kind :: Kind
                 , treasure :: Treasure
                 , dir :: Direction
-                }
+                } | Empty deriving (Eq)
 
 
     -- Show Instance

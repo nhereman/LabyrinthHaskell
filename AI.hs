@@ -108,6 +108,7 @@ module AI where
                         getTreasure (Game.Game _ board _) = Tiles.treasure $ Game.getBoardTile board col row
 
     shortestTreasureDist :: Players.Position -> [Players.Position] -> Int
+    shortestTreasureDist p1 [] = 0
     shortestTreasureDist p1 (p2:[]) = distToPos p1 p2
     shortestTreasureDist p1 (p2:p2s) =  if dist > short then
                                            short

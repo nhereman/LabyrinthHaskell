@@ -137,9 +137,10 @@ module Loader where
               d <- direction
               return $ Tiles.Tile k t d
 
-
     tiles :: Parser [Tiles.Tile]
-    tiles = many tile
+    tiles = do t <- (tile `orelse` return Tiles.Empty)
+               ts <- if (t == Tiles.Empty) then return [] else tiles
+               return (if (t == Tiles.Empty) then ts else (t:ts))
 
     xtile :: Parser Tiles.Tile
     xtile = do k <- kind
@@ -175,5 +176,4 @@ module Loader where
     loadGameFromFile path = do str <- readFile path
                                let toParse = words str
                                let game = applyParser labyrinth toParse
-                               putStr $ show game
                                return $ game
