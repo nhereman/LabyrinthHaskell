@@ -278,25 +278,6 @@ module Game where
 
     -- Treasure gathering
 
-    gatherTreasures :: Game -> Game
-    gatherTreasures (Game (p:ps) board xtile) = Game (newPlayer:ps) board xtile
-                    where
-                        newPlayer = deleteCollectedCards p treasures
-                        treasures = treasuresToGather board p $ reachablePosPlayer board p
-
-    deleteCollectedCards :: Players.Player -> [Tiles.Treasure] -> Players.Player
-    deleteCollectedCards (Players.Player col ctrl pos cards) ts = Players.Player col ctrl pos [c | c <- cards, not (c `elem` ts)]
-
-
-    treasuresToGather :: Board -> Players.Player -> [Players.Position] -> [Tiles.Treasure]
-    treasuresToGather _ _ [] = []
-    treasuresToGather board player ((x,y):ps)
-                        | treasureIsNeeded board player (x,y) = Tiles.treasure (getBoardTile board x y):treasuresToGather board player ps
-                        | otherwise = treasuresToGather board player ps
-
-    treasureIsNeeded :: Board -> Players.Player -> Players.Position -> Bool
-    treasureIsNeeded board (Players.Player _ _ _ cards) (x,y) = Tiles.treasure (getBoardTile board x y) `elem` cards
-
     gatherTreasure :: Game -> Game
     gatherTreasure (Game ((Players.Player col ctrl (x,y) cards):ps) board tile)
                     | treasure `elem` cards = Game (newPlayer:ps) board tile

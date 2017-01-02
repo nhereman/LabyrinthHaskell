@@ -8,9 +8,8 @@ module AI where
 
     computeGameScore :: Game.Game -> Int
     computeGameScore game
-                        | Game.playerHasWin game = 26
-                        | nbCards game == 0 && startReachable game = 25
-                        | otherwise = 24 - nbCards game
+                        | nbCards game == 0 && startReachable game = 1000
+                        | otherwise = 24 - (length (Game.reachableTreasureNeeded game))
                         where
                             nbCards (Game.Game ((Players.Player _ _ _ cards):_) _ _) = length cards
                             startReachable (Game.Game ((Players.Player col _ pos _):_) board _) = (Players.colorPosition col)
@@ -54,10 +53,10 @@ module AI where
     bestDirMove :: Game.Game -> String -> Int -> (Game.Game,Int)
     bestDirMove (Game.Game players board (Tiles.Tile k t _)) input pos = getBestGame [north,south,east,west]
             where
-                north = Game.gatherTreasures $ insertfunc (newgame Tiles.North) pos
-                south = Game.gatherTreasures $ insertfunc (newgame Tiles.South) pos
-                east = Game.gatherTreasures $ insertfunc (newgame Tiles.East) pos
-                west = Game.gatherTreasures $ insertfunc (newgame Tiles.West) pos
+                north = insertfunc (newgame Tiles.North) pos
+                south = insertfunc (newgame Tiles.South) pos
+                east = insertfunc (newgame Tiles.East) pos
+                west = insertfunc (newgame Tiles.West) pos
                 insertfunc
                     | input == "top" = Game.insertTop
                     | input == "bottom" = Game.insertBottom
