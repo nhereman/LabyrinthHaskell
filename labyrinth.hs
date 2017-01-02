@@ -28,11 +28,11 @@ createGame = do
 createGame' :: Int -> Int -> IO ()
 createGame' p ai = do
                     gen <- getStdGen
-                    let (treasures,gen2) = Utils.permutation gen [1..24]
+                    let (treasures,gen2) = Utils.permutation gen ( [1..24] ++ (take 22 (repeat 0)) )
                     let (tiles,gen3) = Utils.permutation gen2 Tiles.generateEmptyTiles
-                    let (treasTile,gen4) = Utils.permutation gen3 $ Tiles.putTreasureOnTiles tiles treasures
-                    let (cards,gen5) = Utils.permutation gen4 [1..24]
-                    turn $ Game.generateGame p (p-ai) cards treasTile
+                    let (cards,gen4) = Utils.permutation gen3 [1..24]
+                    let (players,gen5) = Utils.permutation gen4 $ Players.generatePlayers p (p-ai)
+                    turn $ Game.generateGame players cards tiles treasures
 
 
 stateOfTheGame :: Game.Game -> IO ()

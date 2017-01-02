@@ -113,8 +113,18 @@ module Game where
 
     -- Game generation
 
-    generateGame :: Int -> Int -> [Players.Card] -> [Tiles.Tile] -> Game
-    generateGame nbPlayer nbAI cards (t:ts) = Game (Players.distributeCards (Players.generatePlayers nbPlayer nbAI) cards) (generateBoard ts) t
+    generateGame :: [Players.Player] -> [Players.Card] -> [Tiles.Tile] -> [Tiles.Treasure] -> Game
+    generateGame players cards (t:ts) (tr:trs) = Game (Players.distributeCards players cards)
+                                                            (putTreasureOnBoard (generateBoard ts) 0 0 trs)
+                                                            (Tiles.putTreasureOnTile t tr)
+
+    putTreasureOnBoard :: Board -> Int -> Int  -> [Tiles.Treasure] -> Board
+    putTreasureOnBoard board _ _ [] = board
+    putTreasureOnBoard board col row (t:ts)
+                        | col == 7 && row == 7 = board
+                        | col == 7 = putTreasureOnBoard board 0 (row+1) (t:ts)
+                        | otherwise = replaceTile (putTreasureOnBoard board (col+1) row ts) (col,row)
+                                                    (Tiles.putTreasureOnTile (getBoardTile board col row) t)
 
 
 

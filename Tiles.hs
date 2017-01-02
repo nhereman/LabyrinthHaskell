@@ -43,9 +43,8 @@ module Tiles where
                          ++ (take 6 (repeat (Tile Tshaped 0 North)))
                          ++ (take 12 (repeat (Tile Line 0 North)))
 
-    putTreasureOnTiles :: [Tile] -> [Treasure] -> [Tile]
-    putTreasureOnTiles tiles [] = tiles
-    putTreasureOnTiles ((Tile k _ d):ts) (tr:trs) = (Tile k tr d):putTreasureOnTiles ts trs
+    putTreasureOnTile :: Tile -> Treasure -> Tile
+    putTreasureOnTile (Tile k _ d) t = Tile k t d
 
 
     -- Tile connection
