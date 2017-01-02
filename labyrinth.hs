@@ -113,27 +113,21 @@ nbPlayers = do
                 putStr "How many players (Real + IA) (maximum 4) ? \n"
                 choice <- getLine
                 let c = read choice :: Int
-                choice2 <- if (c `elem` [1..4]) then toIO c else nbPlayers
-                return choice2
+                if (c `elem` [1..4]) then return c else nbPlayers
 
 nbAI :: Int -> IO Int
 nbAI players = do
                 putStr "How many players are controled by AI ? \n"
                 choice <- getLine
                 let c = read choice :: Int
-                choice2 <- if (c `elem` [0..players]) then toIO c else nbAI players
-                return choice2
+                if (c `elem` [0..players]) then return c else nbAI players
 
 -- Choice save or play
 askSaveOrPlay :: IO String
 askSaveOrPlay = do
                     putStr "\n0. Continue to play\n1. Save the game and quit\nWhat do you want to do 0 or 1?\n"
                     choice <- getLine
-                    choice2 <- if isChoiceSPGood choice then toIO choice else askSaveOrPlay
-                    return choice2
-
-toIO :: a -> IO a
-toIO dat = return dat -- FIND A BETTER WAY !!!!!!!!!!!!!!!!
+                    if isChoiceSPGood choice then return choice else askSaveOrPlay
 
 isChoiceSPGood :: String -> Bool
 isChoiceSPGood choice = choice == "0" || choice == "1"
@@ -160,16 +154,14 @@ insertSideChoice = do
                         putStr "From which side do you want to insert the tile ?\n"
                         putStr "0.Top\t1.Bottom\t2.Left\t3.Right\n"
                         choice <- getLine
-                        choice2 <- if choice `elem` ["0","1","2","3"] then toIO choice else insertSideChoice
-                        return choice2
+                        if choice `elem` ["0","1","2","3"] then return choice else insertSideChoice
 
 rowOrColChoice :: Bool -> IO String
 rowOrColChoice isCol = do
                         putStr $"In which "++rowOrCol++" do you want to insert the tile ? \n"
                         putStr "1, 3 or 5 ?\n"
                         choice <- getLine
-                        choice2 <- if choice `elem` ["1", "3", "5"] then toIO choice else rowOrColChoice isCol
-                        return choice2
+                        if choice `elem` ["1", "3", "5"] then return choice else rowOrColChoice isCol
                         where
                             rowOrCol = if isCol then "column" else "row"
 
@@ -186,8 +178,7 @@ positionChoice :: IO String
 positionChoice = do
                     putStr "Which position for the tile (0,1,2 or 3) ?\n"
                     choice <- getLine
-                    choice2 <- if choice `elem` ["0","1","2","3"] then toIO choice else positionChoice
-                    return choice2
+                    if choice `elem` ["0","1","2","3"] then return choice else positionChoice
 
 choiceToAction :: Game.Game -> String -> String -> Int -> Game.Game
 choiceToAction (Game.Game players board (Tiles.Tile k t _)) side pos rowcol
@@ -212,26 +203,23 @@ moveChoice  (Game.Game (p:ps) board tile) = do
                     let reachable  = (Game.reachablePosPlayer board p)
                     col <- colChoice
                     row <- rowChoice
-                    result <- if (col,row) `elem` reachable
-                                then toIO (col,row)
-                                else moveChoice (Game.Game (p:ps) board tile)
-                    return result
+                    if (col,row) `elem` reachable
+                        then return (col,row)
+                        else moveChoice (Game.Game (p:ps) board tile)
 
 colChoice :: IO Int
 colChoice = do
                 putStr "Which column you want your pawn to go (0 to 6) ?\n"
                 colStr <- getLine
                 let col = read colStr :: Int
-                result <- if col >= 0 && col < 7 then toIO col else colChoice
-                return result
+                if col >= 0 && col < 7 then return col else colChoice
 
 rowChoice :: IO Int
 rowChoice = do
                 putStr "Which row you want your pawn to go (0 to 6) ?\n"
                 rowStr <- getLine
                 let row = read rowStr :: Int
-                result <- if row >= 0 && row < 7 then toIO row else rowChoice
-                return result
+                if row >= 0 && row < 7 then return row else rowChoice
 
 
 
