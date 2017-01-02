@@ -297,6 +297,21 @@ module Game where
     treasureIsNeeded :: Board -> Players.Player -> Players.Position -> Bool
     treasureIsNeeded board (Players.Player _ _ _ cards) (x,y) = Tiles.treasure (getBoardTile board x y) `elem` cards
 
+    gatherTreasure :: Game -> Game
+    gatherTreasure (Game ((Players.Player col ctrl (x,y) cards):ps) board tile)
+                    | treasure `elem` cards = Game (newPlayer:ps) board tile
+                    | otherwise = (Game ((Players.Player col ctrl (x,y) cards):ps) board tile) 
+                    where
+                        treasure = (Tiles.treasure (getBoardTile board x y))
+                        newPlayer = Players.Player col ctrl (x,y) [c | c <- cards, not (c == treasure)]
+
+    reachableTreasureNeeded :: Game -> [Tiles.Treasure]
+    reachableTreasureNeeded (Game ((Players.Player col ctrl pos cards):ps) board xtile) = 
+                            filter (\t -> t `elem` cards) $ toTreasure $ reachablePos board pos []
+                    where
+                        toTreasure [] = []
+                        toTreasure ((x,y):ps) =( Tiles.treasure (getBoardTile board x y)):toTreasure ps
+
 
     -- Win condition
 
