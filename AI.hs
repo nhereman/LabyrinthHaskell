@@ -18,26 +18,28 @@ module AI where
     playToStart :: Game.Game -> Game.Game
     playToStart game
                 | snd shifted = moveToOnePos (fst shifted) [start game]
-                | snd shiftedNoStart = moveToOnePos (fst shiftedNoStart) nearPos
-                | otherwise = Game.movePlayerTo (fst shifted) (head (reachable game))
+                | otherwise = playToNear game [start game] 1
                 where
                     start (Game.Game ((Players.Player col _ _ _):ps) _ _ ) = Players.colorPosition col
                     shifted = putTile game [start game]
-                    shiftedNoStart = putTile game nearPos
-                    nearPos = (nearPositionList [start game] 1) ++ (nearPositionList [start game] 2) ++ (nearPositionList [start game] 3)
-                    reachable (Game.Game (p:ps) board _) = Game.reachablePosPlayer board p
 
     playToTreasure :: Game.Game -> Game.Game
     playToTreasure game
                     | snd shifted = moveToTreasure $ fst shifted
-                    | (snd shiftedNoTreasure) = moveToOnePos (fst shiftedNoTreasure) nearPos
-                    | otherwise = Game.movePlayerTo (fst shifted) (head (reachable game))
+                    | otherwise = playToNear game treasPos 1
                     where
                         shifted = putTile game []
-                        shiftedNoTreasure = putTile game nearPos
                         treasPos = Game.neededTreasurePos game
-                        nearPos = (nearPositionList treasPos 1) ++ (nearPositionList treasPos 2) ++ (nearPositionList treasPos 3)
-                        reachable (Game.Game (p:ps) board _) = Game.reachablePosPlayer board p
+
+    playToNear :: Game.Game -> [Players.Position] -> Int -> Game.Game
+    playToNear game ps dist
+                | dist == 10 = moveToOnePos (fst shifted) (reachable game)
+                | snd shifted = moveToOnePos (fst shifted) nearPos
+                | otherwise  = playToNear game ps (dist+1)
+                where
+                    nearPos = nearPositionList ps dist
+                    reachable (Game.Game (pos:poss) board _) = Game.reachablePosPlayer board pos
+                    shifted = putTile game nearPos
 
 
     -- Shifting tiles
