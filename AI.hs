@@ -3,121 +3,131 @@ module AI where
     import qualified Tiles
     import qualified Players
     import qualified Game
+    import Debug.Trace
 
-    -- Tile insertion
 
-    computeGameScore :: Game.Game -> Int
-    computeGameScore game
-                        | nbCards game == 0 && startReachable game = 1000
-                        | otherwise = 24 - (length (Game.reachableTreasureNeeded game))
+
+    playTurn :: Game.Game -> Game.Game
+    playTurn game
+            | nbCards game == 0 = playToStart game
+            | otherwise = playToTreasure game
+            where
+                nbCards (Game.Game ((Players.Player _ _ _ cards):_) _ _) = length cards
+
+
+    playToStart :: Game.Game -> Game.Game
+    playToStart game
+                | snd shifted = moveToOnePos (fst shifted) [start game]
+                | snd shiftedNoStart = moveToOnePos (fst shiftedNoStart) nearPos
+                | otherwise = Game.movePlayerTo (fst shifted) (head (reachable game))
+                where
+                    start (Game.Game ((Players.Player col _ _ _):ps) _ _ ) = Players.colorPosition col
+                    shifted = putTile game [start game]
+                    shiftedNoStart = putTile game nearPos
+                    nearPos = (nearPositionList [start game] 1) ++ (nearPositionList [start game] 2) ++ (nearPositionList [start game] 3)
+                    reachable (Game.Game (p:ps) board _) = Game.reachablePosPlayer board p
+
+    playToTreasure :: Game.Game -> Game.Game
+    playToTreasure game
+                    | snd shifted = moveToTreasure $ fst shifted
+                    | (snd shiftedNoTreasure) = moveToOnePos (fst shiftedNoTreasure) nearPos
+                    | otherwise = Game.movePlayerTo (fst shifted) (head (reachable game))
+                    where
+                        shifted = putTile game []
+                        shiftedNoTreasure = putTile game nearPos
+                        treasPos = Game.neededTreasurePos game
+                        nearPos = (nearPositionList treasPos 1) ++ (nearPositionList treasPos 2) ++ (nearPositionList treasPos 3)
+                        reachable (Game.Game (p:ps) board _) = Game.reachablePosPlayer board p
+
+
+    -- Shifting tiles
+
+    putTile :: Game.Game -> [Players.Position] -> (Game.Game,Bool)
+    putTile game objPos
+                        | snd left = left
+                        | snd right = right
+                        | snd top = top
+                        | snd bottom = bottom
+                        | otherwise =  (fst left, False)
                         where
-                            nbCards (Game.Game ((Players.Player _ _ _ cards):_) _ _) = length cards
-                            startReachable (Game.Game ((Players.Player col _ pos _):_) board _) = (Players.colorPosition col)
-                                                                                                   `elem` Game.reachablePos board pos []
+                             left = putTileInput game objPos "left"
+                             right = putTileInput game objPos "right"
+                             top = putTileInput game objPos "top"
+                             bottom = putTileInput game objPos "bottom"
 
-    getBestGame :: [Game.Game] -> (Game.Game,Int)
-    getBestGame (g:[]) = (g, computeGameScore g)
-    getBestGame (g:gs) = let best = getBestGame gs
-                             score = computeGameScore g in
-                         if snd best >= score then
-                            best
-                         else
-                            (g,score)
-
-    getBestGameComputed :: [(Game.Game, Int)] -> (Game.Game,Int)
-    getBestGameComputed (g:[]) = g
-    getBestGameComputed ((ga,s):gs) = let best = getBestGameComputed gs in
-                                      if snd best >= s then
-                                        best
-                                      else
-                                        (ga,s)
+    putTileInput :: Game.Game -> [Players.Position] -> String -> (Game.Game,Bool)
+    putTileInput game objPos input
+                            | snd one = one
+                            | snd three = three
+                            | snd five = five
+                            | otherwise = (fst one, False)
+                            where
+                                one = putTilePosition game objPos input 1
+                                three = putTilePosition game objPos input 3
+                                five = putTilePosition game objPos input 5
 
 
-    
-    bestMove :: Game.Game -> Game.Game
-    bestMove game = fst $ getBestGameComputed [left,right,top,bottom]
-            where
-                left = bestPosMove game "left"
-                right = bestPosMove game "right"
-                top = bestPosMove game "top"
-                bottom = bestPosMove game "bottom"
+    putTilePosition :: Game.Game -> [Players.Position] -> String -> Int -> (Game.Game,Bool)
+    putTilePosition game objPos input pos
+                            | snd north = north
+                            | snd south = south
+                            | snd west = west
+                            | snd east = east
+                            | otherwise = (fst north, False)
+                            where
+                                north = putTileDirection game objPos input pos Tiles.North
+                                south = putTileDirection game objPos input pos Tiles.South
+                                west = putTileDirection game objPos input pos Tiles.West
+                                east = putTileDirection game objPos input pos Tiles.East
 
+    putTileDirection :: Game.Game -> [Players.Position] -> String -> Int -> Tiles.Direction -> (Game.Game,Bool)
+    putTileDirection game objPos input pos dir = (insertedGame,check)
+                            where
+                                canReachTreasure = length (Game.reachableTreasureNeeded insertedGame) > 0
+                                insertedGame = func (newGame game) pos
+                                newGame (Game.Game players board tile) = Game.Game players board (newTile tile)
+                                newTile (Tiles.Tile k t _) = Tiles.Tile k t dir
+                                func
+                                    | input == "top" = Game.insertTop
+                                    | input == "bottom" = Game.insertBottom
+                                    | input == "left" = Game.insertLeft
+                                    | otherwise = Game.insertRight
+                                check
+                                    | objPos == [] = canReachTreasure
+                                    | otherwise = isOnePosReachable insertedGame objPos
 
-    bestPosMove :: Game.Game -> String -> (Game.Game,Int)
-    bestPosMove game input = getBestGameComputed [one,three,five]
-            where
-                one = bestDirMove game input 1
-                three = bestDirMove game input 3
-                five = bestDirMove game input 5
-
-    bestDirMove :: Game.Game -> String -> Int -> (Game.Game,Int)
-    bestDirMove (Game.Game players board (Tiles.Tile k t _)) input pos = getBestGame [north,south,east,west]
-            where
-                north = insertfunc (newgame Tiles.North) pos
-                south = insertfunc (newgame Tiles.South) pos
-                east = insertfunc (newgame Tiles.East) pos
-                west = insertfunc (newgame Tiles.West) pos
-                insertfunc
-                    | input == "top" = Game.insertTop
-                    | input == "bottom" = Game.insertBottom
-                    | input == "left" = Game.insertLeft
-                    | otherwise = Game.insertRight
-                newtile dir = (Tiles.Tile k t dir)
-                newgame dir = Game.Game players board $ newtile dir
-
-
-
-    -- Pawn movement
-
-    movePawn :: Game.Game -> Game.Game
-    movePawn game = Game.movePlayerTo game $ fst $ bestPosition game $ reachable game
-            where
-                reachable (Game.Game (p:_) b _) = Game.reachablePosPlayer b p
-
-    bestPosition :: Game.Game -> [Players.Position] -> (Players.Position,Int)
-    bestPosition game (p:[]) = (p,positionScore game p)
-    bestPosition game (p:ps) =  if (snd best) > score then
-                                    best
-                                else
-                                    (p,score)
-                                where
-                                    score = positionScore game p
-                                    best = bestPosition game ps
-
-    positionScore :: Game.Game -> Players.Position -> Int
-    positionScore game pos
-                    | (nbCards game == 0) = 100 - distToStart
-                    | otherwise = 50 - (shortestTreasureDist pos $ treasurePos game 0 0)
+    isOnePosReachable :: Game.Game -> [Players.Position] -> Bool
+    isOnePosReachable _ [] = False
+    isOnePosReachable (Game.Game (p:ps) board tile) ((x,y):xs)
+                    | (x,y) `elem` reachables = True
+                    | otherwise = isOnePosReachable (Game.Game (p:ps) board tile) xs
                     where
-                        nbCards (Game.Game ((Players.Player _ _ _ cards):_) _ _) = length cards
-                        start (Game.Game ((Players.Player col _ _ _):_) _ _) = Players.colorPosition col
-                        distToStart = distToPos pos $ start game
+                        reachables = Game.reachablePosPlayer board p
 
-    distToPos :: Players.Position -> Players.Position -> Int
-    distToPos pos1 pos2 = (abs ((fst pos1)-(fst pos2))) + (abs ((snd pos1)-(snd pos2)))
 
-    treasurePos :: Game.Game -> Int -> Int -> [Players.Position]
-    treasurePos game col row
-                    | col == 7 && row == 6 = []
-                    | col == 7 = treasurePos game 0 (row+1)
-                    | getTreasure game `elem` cards game = (col,row):treasurePos game (col+1) row
-                    | otherwise = treasurePos game (col+1) row
+    -- Move pawn
+
+    moveToTreasure :: Game.Game -> Game.Game
+    moveToTreasure game = Game.movePlayerTo game treasPos
                     where
-                        cards (Game.Game (p:_) _ _) = Players.cards p
-                        getTreasure (Game.Game _ board _) = Tiles.treasure $ Game.getBoardTile board col row
+                        treasPos = head $ Game.reachableTreasureNeededPos game
 
-    shortestTreasureDist :: Players.Position -> [Players.Position] -> Int
-    shortestTreasureDist p1 [] = 0
-    shortestTreasureDist p1 (p2:[]) = distToPos p1 p2
-    shortestTreasureDist p1 (p2:p2s) =  if dist > short then
-                                           short
-                                        else
-                                           dist
-                                    where
-                                        dist = distToPos p1 p2
-                                        short = shortestTreasureDist p1 p2s
+    moveToOnePos :: Game.Game -> [Players.Position] -> Game.Game
+    moveToOnePos game [] = game
+    moveToOnePos game (p:ps)
+                | p `elem` reachable game = Game.movePlayerTo game p
+                | otherwise = moveToOnePos game ps
+                where
+                    reachable (Game.Game (p:ps) board _) = Game.reachablePosPlayer board p
 
 
+    -- others
 
+    nearPositionList :: [Players.Position] -> Int -> [Players.Position]
+    nearPositionList [] _ = []
+    nearPositionList (p:ps) distance = (nearPosition p distance)++nearPositionList ps distance
 
-
+    nearPosition  :: Players.Position -> Int -> [Players.Position]
+    nearPosition (x,y) distance = [(nx,ny) | nx<-[0..6], ny<-[0..6], (dx,dy)<-distList , nx == 0+dx, ny == 0+dy]
+                where
+                    distList = [(dx,dy) | dx <- [-6..6], dy <- [-6..6],((abs dx)+ (abs dy)) == distance]

@@ -89,10 +89,10 @@ playHuman game = do
 
 playAI :: Game.Game -> IO ()
 playAI game = do
-                let collected = AI.bestMove game
-                let moved = AI.movePawn collected
-                let hasWin = Game.playerHasWin moved
-                endOfTurn moved hasWin
+                let moved = AI.playTurn game
+                let collected = Game.gatherTreasure moved
+                let hasWin = Game.playerHasWin collected
+                endOfTurn collected hasWin
                 
 
 

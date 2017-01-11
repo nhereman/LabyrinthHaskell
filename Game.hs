@@ -293,6 +293,25 @@ module Game where
                         toTreasure [] = []
                         toTreasure ((x,y):ps) =( Tiles.treasure (getBoardTile board x y)):toTreasure ps
 
+    reachableTreasureNeededPos :: Game -> [Players.Position]
+    reachableTreasureNeededPos (Game ((Players.Player col ctrl pos cards):ps) board xtile) =
+                            filter (\pos -> isNeeded pos) $ reachablePos board pos []
+                    where
+                        isNeeded pos = getTreasure pos `elem` cards
+                        getTreasure (x,y) = Tiles.treasure (getBoardTile board x y)
+
+    neededTreasurePos :: Game -> [Players.Position]
+    neededTreasurePos game = []
+
+    neededTreasurePos' :: Board -> [Players.Card] -> Int -> Int -> [Players.Position]
+    neededTreasurePos' board cards col row
+                    | row == 7 = []
+                    | col == 7 = neededTreasurePos' board cards 0 (row+1)
+                    | isTreasureNeeded = (col,row):neededTreasurePos' board cards (col+1) row
+                    | otherwise = neededTreasurePos' board cards (col+1) row
+                    where
+                        isTreasureNeeded = (Tiles.treasure (getBoardTile board col row)) `elem` cards
+
 
     -- Win condition
 
