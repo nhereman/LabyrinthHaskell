@@ -9,10 +9,11 @@ module AI where
 
     playTurn :: Game.Game -> Game.Game
     playTurn game
-            | nbCards game == 0 = playToStart game
-            | otherwise = playToTreasure game
+            | nbCards game == 0 = trace ("s"++(posi game)) playToStart game
+            | otherwise = trace ("t"++(posi game)) playToTreasure game
             where
                 nbCards (Game.Game ((Players.Player _ _ _ cards):_) _ _) = length cards
+                posi (Game.Game ((Players.Player _ _ pos _):ps) _ _) = show pos
 
 
     playToStart :: Game.Game -> Game.Game
@@ -34,12 +35,14 @@ module AI where
     playToNear :: Game.Game -> [Players.Position] -> Int -> Game.Game
     playToNear game ps dist
                 | dist == 10 = moveToOnePos (fst shifted) (reachable game)
-                | snd shifted = moveToOnePos (fst shifted) nearPos
+                | snd shifted = moveToOnePos (fst shifted) nearNotCurrent
                 | otherwise  = playToNear game ps (dist+1)
                 where
                     nearPos = nearPositionList ps dist
                     reachable (Game.Game (pos:poss) board _) = Game.reachablePosPlayer board pos
                     shifted = putTile game nearPos
+                    currPos (Game.Game ((Players.Player _ _ pos _):ps) _ _) = pos
+                    nearNotCurrent = filter ((currPos game) /= ) nearPos
 
 
     -- Shifting tiles
@@ -96,7 +99,9 @@ module AI where
                                     | otherwise = Game.insertRight
                                 check
                                     | objPos == [] = canReachTreasure
-                                    | otherwise = isOnePosReachable insertedGame objPos
+                                    | otherwise = isOnePosReachable insertedGame objNotCurrent
+                                currPos (Game.Game ((Players.Player _ _ pos _):ps) _ _) = pos
+                                objNotCurrent = filter ((currPos game) /= ) objPos
 
     isOnePosReachable :: Game.Game -> [Players.Position] -> Bool
     isOnePosReachable _ [] = False
