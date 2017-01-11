@@ -3,17 +3,15 @@ module AI where
     import qualified Tiles
     import qualified Players
     import qualified Game
-    import Debug.Trace
 
 
 
     playTurn :: Game.Game -> Game.Game
     playTurn game
-            | nbCards game == 0 = trace ("s"++(posi game)) playToStart game
-            | otherwise = trace ("t"++(posi game)) playToTreasure game
+            | nbCards game == 0 = playToStart game
+            | otherwise = playToTreasure game
             where
                 nbCards (Game.Game ((Players.Player _ _ _ cards):_) _ _) = length cards
-                posi (Game.Game ((Players.Player _ _ pos _):ps) _ _) = show pos
 
 
     playToStart :: Game.Game -> Game.Game

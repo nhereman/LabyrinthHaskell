@@ -2,7 +2,6 @@ module Tiles where
 
     import Control.Monad
     import System.Random
-    import Debug.Trace
 
     type Treasure = Int
     data Direction = North | East | South | West deriving (Eq)
