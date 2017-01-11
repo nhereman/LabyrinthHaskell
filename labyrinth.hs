@@ -30,9 +30,10 @@ createGame' p ai = do
                     gen <- getStdGen
                     let (treasures,gen2) = Utils.permutation gen ( [1..24] ++ (take 22 (repeat 0)) )
                     let (tiles,gen3) = Utils.permutation gen2 Tiles.generateEmptyTiles
-                    let (cards,gen4) = Utils.permutation gen3 [1..24]
-                    let (players,gen5) = Utils.permutation gen4 $ Players.generatePlayers p (p-ai)
-                    turn $ Game.generateGame players cards tiles treasures
+                    let (randomDirTiles,gen4) = Tiles.shuffleDirectionTile gen3 tiles
+                    let (cards,gen5) = Utils.permutation gen4 [1..24]
+                    let (players,gen6) = Utils.permutation gen5 $ Players.generatePlayers p (p-ai)
+                    turn $ Game.generateGame players cards randomDirTiles treasures
 
 
 stateOfTheGame :: Game.Game -> IO ()

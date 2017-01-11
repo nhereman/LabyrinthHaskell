@@ -27,3 +27,7 @@ test.txt
 test2.txt
 
 Loader2.hs
+
+*.sublime-project
+
+*.sublime-workspace

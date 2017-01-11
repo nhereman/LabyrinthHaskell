@@ -1,5 +1,9 @@
 module Tiles where
 
+    import Control.Monad
+    import System.Random
+    import Debug.Trace
+
     type Treasure = Int
     data Direction = North | East | South | West deriving (Eq)
     data Kind = Corner | Tshaped | Line deriving (Eq)
@@ -45,6 +49,26 @@ module Tiles where
 
     putTreasureOnTile :: Tile -> Treasure -> Tile
     putTreasureOnTile (Tile k _ d) t = Tile k t d
+
+    shuffleDirectionTile :: StdGen -> [Tile] -> ([Tile],StdGen)
+    shuffleDirectionTile gen [] = ([],gen)
+    shuffleDirectionTile gen ((Tile k t _):ts) =
+                        let (newList,newGen) = shuffleDirectionTile gen ts
+                            (n1,newGen2) = random newGen
+                            n2 = n1 `mod` 4
+                            dir = numberToDir n2
+                        in ((Tile k t dir):newList,newGen2)
+
+
+
+
+    numberToDir :: Int -> Direction
+    numberToDir n
+            | n == 0 = North
+            | n == 1 = South
+            | n == 2 = East
+            | otherwise = West
+
 
 
     -- Tile connection
