@@ -32,7 +32,7 @@ module AI where
 
     playToNear :: Game.Game -> [Players.Position] -> Int -> Game.Game
     playToNear game ps dist
-                | dist == 10 = moveToOnePos (fst shifted) (reachable game)
+                | dist == 12 = moveToOnePos (fst shifted) (reachable game)
                 | snd shifted = moveToOnePos (fst shifted) nearNotCurrent
                 | otherwise  = playToNear game ps (dist+1)
                 where

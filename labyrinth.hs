@@ -80,18 +80,19 @@ playHuman game = do
                 stateOfTheGame game
                 shifted <- mazeShiftingChoice game
                 System.Process.callCommand "clear"
-                stateOfTheGame shifted
-                showReachableTreasure shifted
+                let collectedTreas = Game.reachableTreasureNeeded shifted
+                let collected = Game.gatherTreasures shifted
+                stateOfTheGame collected
+                showCollectedTreasures collectedTreas
                 pos <- moveChoice shifted
-                let moved = Game.movePlayerTo shifted pos
-                let collected = Game.gatherTreasure moved
-                let hasWin = Game.playerHasWin collected
-                endOfTurn collected hasWin
+                let moved = Game.movePlayerTo collected pos
+                let hasWin = Game.playerHasWin moved
+                endOfTurn moved hasWin
 
 playAI :: Game.Game -> IO ()
 playAI game = do
                 let moved = AI.playTurn game
-                let collected = Game.gatherTreasure moved
+                let collected = Game.gatherTreasures moved
                 let hasWin = Game.playerHasWin collected
                 endOfTurn collected hasWin
                 
@@ -109,8 +110,8 @@ save game = do
                 filepath <- getLine
                 Game.saveGame game filepath
 
-showReachableTreasure :: Game.Game -> IO ()
-showReachableTreasure game = putStr $ ("Reachable treasures you own : " ++ (show (Game.reachableTreasureNeeded game )) ++ "\n")
+showCollectedTreasures :: [Tiles.Treasure] -> IO ()
+showCollectedTreasures treasures = putStr $ ("Reachable treasures you collected : " ++ (show treasures) ++ "\n")
 
 -- Choice nb Player
 nbPlayers :: IO Int
