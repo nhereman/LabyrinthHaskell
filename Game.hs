@@ -123,6 +123,7 @@ module Game where
     putTreasureOnBoard board col row (t:ts)
                         | col == 7 && row == 7 = board
                         | col == 7 = putTreasureOnBoard board 0 (row+1) (t:ts)
+                        | isStartingPosition (col,row) = putTreasureOnBoard board (col+1) row (t:ts)
                         | otherwise = replaceTile (putTreasureOnBoard board (col+1) row ts) (col,row)
                                                     (Tiles.putTreasureOnTile (getBoardTile board col row) t)
 
@@ -278,13 +279,13 @@ module Game where
 
     -- Treasure gathering
 
-    gatherTreasure :: Game -> Game
-    gatherTreasure (Game ((Players.Player col ctrl (x,y) cards):ps) board tile)
-                    | treasure `elem` cards = Game (newPlayer:ps) board tile
-                    | otherwise = (Game ((Players.Player col ctrl (x,y) cards):ps) board tile) 
+    gatherTreasures :: Game -> Game
+    gatherTreasures game = newGame game
                     where
-                        treasure = (Tiles.treasure (getBoardTile board x y))
-                        newPlayer = Players.Player col ctrl (x,y) [c | c <- cards, not (c == treasure)]
+                        newGame (Game ((Players.Player col ctrl pos cards):ps) board tile) = 
+                                        Game ((Players.Player col ctrl pos (newCards cards)):ps) board tile
+                        newCards cards = filter (\c -> not(c `elem` gatheredTreasures)) cards
+                        gatheredTreasures = reachableTreasureNeeded game
 
     reachableTreasureNeeded :: Game -> [Tiles.Treasure]
     reachableTreasureNeeded (Game ((Players.Player col ctrl pos cards):ps) board xtile) = 
