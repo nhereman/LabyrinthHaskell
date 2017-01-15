@@ -57,7 +57,7 @@ playerCards ((Players.Player _ _ _ cards):_) = do
 otherPlayerCards :: [Players.Player] -> IO ()
 otherPlayerCards [] = putStr "\n"
 otherPlayerCards ((Players.Player col _ _ cards):ps) = do
-                                                            putStr $ show col ++ ":" ++ show (length cards) ++ " "
+                                                            putStr $ show col ++ " : " ++ show (length cards) ++ " "
                                                             otherPlayerCards ps
 
 
